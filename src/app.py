@@ -45,6 +45,92 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
+@app.route('/people', methods=['GET'])
+def get_person(people_id):
+    person = Person.query.get(people_id)
+    if person is None:
+        raise APIException('Person not found', status_code=404)
+    return jsonify(person.serialize()), 200
+
+@app.route('/people/<int:people_id>', methods=['GET'])
+def get_person(people_id):
+    person = Person.query.get(people_id)
+    if person is None:
+        raise APIException('Person not found', status_code=404)
+    return jsonify(person.serialize()), 200
+
+@app.route('/planets', methods=['GET'])
+def get_planets():
+    planets = Planet.query.all()
+    return jsonify([planet.serialize() for planet in planets]), 200
+
+@app.route('/planets/<int:planet_id>', methods=['GET'])
+def get_planet(planet_id):
+    planet = Planet.query.get(planet_id)
+    if planet is None:
+        raise APIException('Planet not found', status_code=404)
+    return jsonify(planet.serialize()), 200
+
+
+current_user_id = 1
+
+
+@app.route('/users', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    return jsonify([user.serialize() for user in users]), 200
+
+@app.route('/users/favorites', methods=['GET'])
+def get_user_favorites():
+    favorites = Favorite.query.filter_by(user_id=current_user_id).all()
+    return jsonify([favorite.serialize() for favorite in favorites]), 200
+
+@app.route('/favorite/planet/<int:planet_id>', methods=['POST'])
+def add_favorite_planet(planet_id):
+    planet = Planet.query.get(planet_id)
+    if planet is None:
+        raise APIException('Planet not found', status_code=404)
+
+    new_favorite = Favorite(user_id=current_user_id, planet_id=planet_id)
+    db.session.add(new_favorite)
+    db.session.commit()
+
+    return jsonify(new_favorite.serialize()), 201
+
+@app.route('/favorite/people/<int:people_id>', methods=['POST'])
+def add_favorite_person(person_id):
+    person = Person.query.get(people_id)
+    if planet is None:
+        raise APIException('Person not found', status_code=404)
+
+    new_favorite = Favorite(user_id=current_user_id, person_id=people_id)
+    db.session.add(new_favorite)
+    db.session.commit()
+
+    return jsonify(new_favorite.serialize()), 201
+
+@app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
+def delete_favorite_planet(planet_id):
+    favorite = Favorite.query.filter_by(user_id=current_user_id, planet_id=planet_id).first()
+    if favorite is None:
+        raise APIException('Favorite not found', status_code=404)
+
+    db.session.delete(favorite)
+    db.session.commit()
+
+    return jsonify({"success": True}), 204
+
+@app.route('/favorite/people/<int:people_id>', methods=['DELETE'])
+def delete_favorite_person(people_id):
+    favorite = Favorite.query.filter_by(user_id=current_user_id, person_id=people_id).first()
+    if favorite is None:
+        raise APIException('Favorite not found', status_code=404)
+
+    db.session.delete(favorite)
+    db.session.commit()
+
+    return jsonify({"success": True}), 204
+
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
