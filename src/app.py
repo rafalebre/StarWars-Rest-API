@@ -46,11 +46,9 @@ def handle_hello():
     return jsonify(response_body), 200
 
 @app.route('/people', methods=['GET'])
-def get_person(people_id):
-    person = Person.query.get(people_id)
-    if person is None:
-        raise APIException('Person not found', status_code=404)
-    return jsonify(person.serialize()), 200
+def get_all_people(people_id):
+    person = Person.query.all()
+    return jsonify([person.seiralize() for person in people]), 200
 
 @app.route('/people/<int:people_id>', methods=['GET'])
 def get_person(people_id):
