@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Person, Planet, Favorite
 #from models import Person
 
 app = Flask(__name__)
@@ -46,9 +46,9 @@ def handle_hello():
     return jsonify(response_body), 200
 
 @app.route('/people', methods=['GET'])
-def get_all_people(people_id):
-    person = Person.query.all()
-    return jsonify([person.seiralize() for person in people]), 200
+def get_all_people():
+    people = Person.query.all()
+    return jsonify([person.serialize() for person in people]), 200
 
 @app.route('/people/<int:people_id>', methods=['GET'])
 def get_person(people_id):
@@ -69,8 +69,9 @@ def get_planet(planet_id):
         raise APIException('Planet not found', status_code=404)
     return jsonify(planet.serialize()), 200
 
-
-current_user_id = 1
+# since there's no authentication, this is a workaround assuming user id 1 is making the requests
+# users created in order to test POST requests
+current_user_id = 2
 
 
 @app.route('/users', methods=['GET'])
@@ -96,7 +97,7 @@ def add_favorite_planet(planet_id):
     return jsonify(new_favorite.serialize()), 201
 
 @app.route('/favorite/people/<int:people_id>', methods=['POST'])
-def add_favorite_person(person_id):
+def add_favorite_person(people_id):
     person = Person.query.get(people_id)
     if planet is None:
         raise APIException('Person not found', status_code=404)
@@ -128,6 +129,45 @@ def delete_favorite_person(people_id):
     db.session.commit()
 
     return jsonify({"success": True}), 204
+
+# creating post endpoints for planets and people - testing Postman purposes
+@app.route('/people', methods=['POST'])
+def create_person():
+    data = request.get_json()
+    if not data:
+        raise APIException( 'Invalid or missing JSON data', status_code=400)
+
+    new_person = Person(name=data.get('name'), age=data.get('age'), gender=data.get('gender'))
+
+    db.session.add(new_person)
+    db.session.commit()
+
+    return jsonify(new_person.serialize()), 201
+
+@app.route('/planets', methods=['POST'])
+def create_planet():
+    data = request.get_json()
+    if not data:
+        raise APIException( 'Invalid or missing JSON data', status_code=400)
+
+    new_planet = Planet(name=data.get('name'), dimension=data.get('dimension'), terrain=data.get('terrain'))
+
+    db.session.add(new_planet)
+    db.session.commit()
+
+    return jsonify(new_planet.serialize()), 201
+
+@app.route('/users/register', methods=['POST'])
+def create_user():
+    data = request.get_json()
+    new_user = User(
+        email=data.get('email'),
+        password=data.get('password'),
+        name=data.get('name')
+    )
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify(new_user.serialize()), 201
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':

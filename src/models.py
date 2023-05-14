@@ -5,8 +5,9 @@ db = SQLAlchemy()
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(120), nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
-    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+    is_active = db.Column(db.Boolean(), unique=False, nullable=True)
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -21,6 +22,8 @@ class User(db.Model):
 class Planet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=False)
+    dimension = db.Column(db.String(30), nullable=False)
+    terrain = db.Column(db.String(30), nullable=False)
 
     def __repr__(self):
         return '<Planet %r>' % self.name
@@ -33,6 +36,8 @@ class Planet(db.Model):
 class Person(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=False)
+    age = db.Column(db.Integer, nullable=False)
+    gender = db.Column(db.String(10), nullable=False)
 
     def __repr__(self):
         return '<Person %r>' % self.name
